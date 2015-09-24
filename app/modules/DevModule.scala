@@ -1,15 +1,15 @@
 package modules
 
-import com.google.inject.{Provides, AbstractModule}
-import forms.LoginInfoForm
+import com.google.inject.{AbstractModule, Provides}
+import forms.LoginForm
 import net.codingwell.scalaguice.ScalaModule
-import services.user.{PasswordInfoDAOImpl, PasswordInfoDAO}
+import services.user.{UserDAO, UserDAOInMemory}
 
 class DevModule extends AbstractModule with ScalaModule {
   def configure() = {
-    bind[PasswordInfoDAO].to[PasswordInfoDAOImpl]
+    bind[UserDAO].to[UserDAOInMemory]
   }
 
   @Provides
-  def provideLoginInfoForm(passwordInfoDAO: PasswordInfoDAO) = new LoginInfoForm(passwordInfoDAO)
+  def provideLoginForm(userDAO: UserDAO) = new LoginForm(userDAO)
 }

@@ -10,8 +10,19 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  specs2 % Test,
+  specs2 % Test
+)
+
+// Dependency injection
+libraryDependencies ++= Seq(
   "net.codingwell" %% "scala-guice" % "4.0.0"
+)
+
+// Test
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
+  "org.scalatestplus" %% "play" % "1.4.0-M3" % "test",
+  "org.mockito" % "mockito-core" % "1.8.5"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
