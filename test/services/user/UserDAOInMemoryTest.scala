@@ -11,12 +11,12 @@ class UserDAOInMemoryTest extends PlaySpec {
     "allow retrieval of an added user" in {
       val userDao = new UserDAOInMemory
       userDao.add(user)
-      val foundUserOption = userDao.retrieve(user.username, user.password)
+      val foundUserOption = userDao.retrieve(user.username)
       foundUserOption.get mustEqual user
     }
     "not retrieve a user that hasn't been added" in {
       val userDao = new UserDAOInMemory
-      val foundUserOption = userDao.retrieve(user.username, user.password)
+      val foundUserOption = userDao.retrieve(user.username)
       foundUserOption mustEqual None
     }
     "raise exception when trying to add a user with the same username as an already added user" in {

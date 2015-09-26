@@ -11,20 +11,15 @@ class UserDAOInMemory extends UserDAO {
 
   override def add(user: User): Unit = {
     if (exists(user.username)) throw UserAlreadyExistsException(s"User with name '${user.username}' already exists")
-    else userMap = userMap + (user.username -> user)
+    else userMap += (user.username -> user)
   }
 
   override def remove(user: User): Unit = {
     if (!exists(user.username)) throw UserNotExistsException(s"User with name '${user.username}' doesn't exist")
-    else userMap = userMap - user.username
+    else userMap -= user.username
   }
 
   override def exists(username: String): Boolean = userMap.keySet.contains(username)
 
-  override def retrieve(username: String, password: String): Option[User] = {
-    userMap.get(username) match {
-      case Some(user) => if (user.password == password) Some(user) else None
-      case None => None
-    }
-  }
+  override def retrieve(username: String): Option[User] = userMap.get(username)
 }

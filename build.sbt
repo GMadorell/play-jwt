@@ -13,10 +13,11 @@ libraryDependencies ++= Seq(
   specs2 % Test
 )
 
+// JWT
+libraryDependencies ++= Seq("com.jason-goodwin" %% "authentikat-jwt" % "0.4.1")
+
 // Dependency injection
-libraryDependencies ++= Seq(
-  "net.codingwell" %% "scala-guice" % "4.0.0"
-)
+libraryDependencies ++= Seq("net.codingwell" %% "scala-guice" % "4.0.0")
 
 // Test
 libraryDependencies ++= Seq(

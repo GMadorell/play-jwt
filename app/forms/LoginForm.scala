@@ -12,8 +12,12 @@ class LoginForm @Inject()(userDAO: UserDAO) {
       "username" -> text,
       "password" -> text
     )(LoginInfo.apply)(LoginInfo.unapply) verifying("Wrong username or password", fields => fields match {
-      case loginInfo => userDAO.retrieve(loginInfo.username, loginInfo.password).isDefined
+      case loginInfo => verifyLoginInfo(loginInfo)
     })
   )
+
+  def verifyLoginInfo(loginInfo: LoginInfo): Boolean = {
+    false
+  }
 }
 
