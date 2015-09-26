@@ -1,6 +1,6 @@
 package services.jwt
 
-import models.User
+import models.{JwtToken, User}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -23,13 +23,13 @@ class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {
     "mark as invalid a non jwt string" in {
       val userDAO = mock[UserDAO]
       val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      authenticator.isValid("some string that isn't a jwt") == false
+      authenticator.isValid(JwtToken("some string that isn't a jwt")) == false
     }
     "mark as invalid a modified token" in {
       val userDAO = mock[UserDAO]
       val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      val token = authenticator.authenticateUser(user)
-      val modifiedToken = token.dropRight(1)
+      val jwtToken = authenticator.authenticateUser(user)
+      val modifiedToken = JwtToken(jwtToken.token.dropRight(1))
       authenticator.isValid(modifiedToken) == false
     }
     "get a user from a valid token" in {
@@ -46,7 +46,8 @@ class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {
     "throw InvalidJwtTokenException when trying to get a user from an invalid token" in {
       val userDAO = mock[UserDAO]
       val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      authenticator.getUserFromToken("some random string that is not a valid token") match {
+      val invalidToken = JwtToken("some random string that is not a valid token")
+      authenticator.getUserFromToken(invalidToken) match {
         case Success(userOption) => fail("Authenticator shouldn't return a user from an invalid token")
         case Failure(ex) => ex mustBe an[InvalidJwtTokenException]
       }

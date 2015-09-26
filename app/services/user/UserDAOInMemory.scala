@@ -19,7 +19,7 @@ class UserDAOInMemory extends UserDAO {
     else userMap -= user.username
   }
 
-  override def exists(username: String): Boolean = userMap.keySet.contains(username)
+  override def exists(username: String): Boolean = retrieve(username).isDefined
 
   override def retrieve(username: String): Option[User] = userMap.get(username)
 }

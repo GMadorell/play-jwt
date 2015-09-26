@@ -2,7 +2,7 @@ package services.jwt
 
 import authentikat.jwt.{JsonWebToken, JwtClaimsSet, JwtHeader}
 import com.google.inject.Inject
-import models.User
+import models.{JwtToken, User}
 import org.json4s.DefaultFormats
 import services.jwt.exception.InvalidJwtTokenException
 import services.user.UserDAO
@@ -20,16 +20,17 @@ class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
   implicit val formats = DefaultFormats
 
 
-  override def authenticateUser(user: User): String = {
+  override def authenticateUser(user: User): JwtToken = {
     val claimsSet = JwtClaimsSet(Map("username" -> user.username))
-    JsonWebToken(header, claimsSet, Secret)
+    val token = JsonWebToken(header, claimsSet, Secret)
+    JwtToken(token)
   }
 
-  override def getUserFromToken(jwtToken: String): Try[Option[User]] = Try {
+  override def getUserFromToken(jwtToken: JwtToken): Try[Option[User]] = Try {
     isValid(jwtToken) match {
       case false => throw InvalidJwtTokenException("Invalid JWT Token")
       case true =>
-        val claims = jwtToken match {
+        val claims = jwtToken.token match {
           case JsonWebToken(_, claimsSet, _) => claimsSet.jvalue
           case _ => throw InvalidJwtTokenException("The given string doesn't seem to be a jwtToken")
         }
@@ -40,5 +41,5 @@ class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
     }
   }
 
-  override def isValid(jwtToken: String): Boolean = JsonWebToken.validate(jwtToken, Secret)
+  override def isValid(jwtToken: JwtToken): Boolean = JsonWebToken.validate(jwtToken.token, Secret)
 }

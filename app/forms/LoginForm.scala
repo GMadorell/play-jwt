@@ -17,7 +17,10 @@ class LoginForm @Inject()(userDAO: UserDAO) {
   )
 
   def verifyLoginInfo(loginInfo: LoginInfo): Boolean = {
-    false
+    userDAO.retrieve(loginInfo.username) match {
+      case None => false
+      case Some(user) => user.password == loginInfo.password
+    }
   }
 }
 
