@@ -1,7 +1,7 @@
 package modules
 
 import com.google.inject.{AbstractModule, Provides}
-import forms.{SignUpForm, LoginForm}
+import forms.{JwtTokenForm, SignUpForm, LoginForm}
 import net.codingwell.scalaguice.ScalaModule
 import services.jwt.{AuthentikatJwtAuthenticator, JwtAuthenticator}
 import services.user.{UserDAO, UserDAOInMemory}
@@ -17,4 +17,7 @@ class DevModule extends AbstractModule with ScalaModule {
 
   @Provides
   def provideSignUpForm(userDAO: UserDAO) = new SignUpForm(userDAO)
+
+  @Provides
+  def provideJwtTokenForm(jwtAuthenticator: JwtAuthenticator) = new JwtTokenForm(jwtAuthenticator)
 }

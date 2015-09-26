@@ -22,6 +22,6 @@ class SignUpController @Inject()(val signUpForm: SignUpForm,
   def handleCorrectSignUp(loginInfo: LoginInfo): Result = {
     val user = User(loginInfo.username, loginInfo.password)
     userDAO.add(user)
-    Ok
+    Created
   }
 }

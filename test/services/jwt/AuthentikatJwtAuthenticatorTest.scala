@@ -3,13 +3,13 @@ package services.jwt
 import models.{JwtToken, User}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import services.jwt.exception.InvalidJwtTokenException
 import services.user.UserDAO
 
 import scala.util.{Failure, Success}
 
-class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {
+class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar with OneAppPerSuite {
 
   val user = User("username", "password")
 
