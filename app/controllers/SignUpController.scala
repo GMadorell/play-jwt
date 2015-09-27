@@ -5,10 +5,12 @@ import forms.SignUpForm
 import models.{LoginInfo, User}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller, Result}
+import services.hash.PasswordHasher
 import services.user.UserDAO
 
 class SignUpController @Inject()(val signUpForm: SignUpForm,
                                  val userDAO: UserDAO,
+                                 val passwordHasher: PasswordHasher,
                                  implicit val messagesApi: MessagesApi)
   extends Controller with I18nSupport {
 
@@ -20,7 +22,7 @@ class SignUpController @Inject()(val signUpForm: SignUpForm,
   }
 
   def handleCorrectSignUp(loginInfo: LoginInfo): Result = {
-    val user = User(loginInfo.username, loginInfo.password)
+    val user = User(loginInfo.username, passwordHasher.hash(loginInfo.password))
     userDAO.add(user)
     Created
   }

@@ -32,7 +32,6 @@ class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
   }
 
   override def getUserFromToken(jwtToken: JwtToken): Try[Option[User]] = Try {
-    println(TokenDurationMilliseconds)
     isValid(jwtToken) match {
       case false => throw InvalidJwtTokenException("Invalid JWT Token")
       case true =>

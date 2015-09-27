@@ -3,7 +3,6 @@
 # ~~~~
 
 # Home page
-GET         /                    controllers.Application.index
 POST        /login               controllers.LoginController.login
 POST        /signup              controllers.SignUpController.signUp
 POST        /secret              controllers.SecretPageController.secret
