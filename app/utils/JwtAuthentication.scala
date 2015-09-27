@@ -1,7 +1,7 @@
 package utils
 
 import forms.JwtTokenForm
-import models.JwtToken
+import models.token.JwtToken
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, Controller, Result}
 import services.jwt.JwtAuthenticator

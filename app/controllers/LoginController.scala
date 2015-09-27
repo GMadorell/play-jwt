@@ -24,7 +24,7 @@ class LoginController @Inject()(val loginForm: LoginForm,
 
   def handleCorrectLogin(loginInfo: LoginInfo): Result = {
     val user = userDAO.retrieve(loginInfo.username).get
-    val jwtToken = jwtAuthenticator.authenticateUser(user)
+    val jwtToken = jwtAuthenticator.generateToken(user)
     Ok(Json.toJson(jwtToken))
   }
 }

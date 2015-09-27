@@ -1,51 +1,53 @@
 package services.jwt
 
-import models.{JwtToken, User}
+import models.User
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import services.jwt.exception.InvalidJwtTokenException
-import services.user.UserDAO
+import utils.Time
 
-import scala.util.{Failure, Success}
+class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {
 
-class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar with OneAppPerSuite {
+  val configuration = mock[Configuration]
+  when(configuration.getString("auth.secret")) thenReturn Some("not really a secret")
+  when(configuration.getString("auth.algorithm")) thenReturn Some("HS256")
+  when(configuration.getLong("auth.tokendurationmillis")) thenReturn None
 
   val user = User("username", "password")
 
   "AuthentikatJwtAuthenticator" should {
     "mark as valid a token created by itself" in {
-      val userDAO = mock[UserDAO]
-      val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      val token = authenticator.authenticateUser(user)
+      val authenticator = new AuthentikatJwtAuthenticator(configuration)
+      val token = authenticator.generateToken(user)
       authenticator.guardIsValid(token).isSuccess mustBe true
     }
-    "mark as invalid a non jwt string" in {
-      val userDAO = mock[UserDAO]
-      val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      authenticator.guardIsValid(JwtToken("some string that isn't a jwt")).isFailure mustBe true
+    "raise exception when parsing a non jwt string" in {
+      val authenticator = new AuthentikatJwtAuthenticator(configuration)
+      intercept[InvalidJwtTokenException] {
+        val token = authenticator.fromString("some string that isn't a jwt")
+      }
     }
     "mark as invalid a modified token" in {
-      val userDAO = mock[UserDAO]
-      val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      val jwtToken = authenticator.authenticateUser(user)
-      val modifiedToken = JwtToken(jwtToken.token.dropRight(1))
+      val authenticator = new AuthentikatJwtAuthenticator(configuration)
+      val jwtToken = authenticator.generateToken(user)
+      val modifiedToken = jwtToken.copy(token = jwtToken.token.dropRight(1))
       authenticator.guardIsValid(modifiedToken).isFailure mustBe true
     }
-    "get a user from a valid token" in {
-      val userDAO = mock[UserDAO]
-      when(userDAO.retrieve(user.username)) thenReturn Some(user.copy())
-      val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      val token = authenticator.authenticateUser(user)
-      authenticator.getUserFromToken(token).get equals user
+    "put the current timestamp in the 'issuedAt' field" in {
+      val authenticator = new AuthentikatJwtAuthenticator(configuration)
+      val jwtToken = authenticator.generateToken(user)
+      jwtToken.issuedAt mustBe (Time.getUnixTimestampMilliseconds +- 200L)
     }
-    "throw InvalidJwtTokenException when trying to get a user from an invalid token" in {
-      val userDAO = mock[UserDAO]
-      val authenticator = new AuthentikatJwtAuthenticator(userDAO)
-      val invalidToken = JwtToken("some random string that is not a valid token")
-      intercept[InvalidJwtTokenException] {
-        authenticator.getUserFromToken(invalidToken)
-      }
+    "put the correct username in the 'username' field" in {
+      val authenticator = new AuthentikatJwtAuthenticator(configuration)
+      val firstToken = authenticator.generateToken(user)
+      firstToken.username must be(user.username)
+      val secondUsername = "xXQuickscopeXx"
+      val secondUser = User(secondUsername, "asdfasdf")
+      val secondToken = authenticator.generateToken(secondUser)
+      secondToken.username must be(secondUser.username)
     }
   }
 }

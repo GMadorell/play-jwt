@@ -3,75 +3,63 @@ package services.jwt
 import authentikat.jwt.{JsonWebToken, JwtClaimsSet, JwtHeader}
 import com.google.inject.Inject
 import models._
+import models.token.JwtToken
 import org.json4s.DefaultFormats
-import play.api.Play
+import play.api.Configuration
 import services.jwt.exception.InvalidJwtTokenException
-import services.user.UserDAO
 import utils.Time
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
+class AuthentikatJwtAuthenticator @Inject()(configuration: Configuration)
   extends JwtAuthenticator {
 
-  private val Secret = Play.current.configuration.getString("auth.secret").get
-  private val Algorithm = Play.current.configuration.getString("auth.algorithm").get
-  private val TokenDurationMilliseconds: Long =
-    Play.current.configuration.getLong("auth.tokendurationmillis").getOrElse(-1)
+  private val Secret = configuration.getString("auth.secret").get
+  private val TokenDurationMilliseconds: Long = configuration.getLong("auth.tokendurationmillis").getOrElse(-1)
+  private val header = JwtHeader(configuration.getString("auth.algorithm").get)
 
-  private val header = JwtHeader(Algorithm)
-  implicit val formats = DefaultFormats
+  private implicit val json4sFormats = DefaultFormats
 
-  override def authenticateUser(user: User): JwtToken = {
+  override def generateToken(user: User): JwtToken = {
+    val issuedAt = Time.getUnixTimestampMilliseconds
+    val username = user.username
+    val tokenId = UniqueIdGenerator.generate
     val claimsSet = JwtClaimsSet(Map(
-      "username" -> user.username,
-      "issuedAt" -> Time.getUnixTimestampMilliseconds,
-      "tokenId" -> UniqueIdGenerator.generate.uuid
+      "username" -> username,
+      "issuedAt" -> issuedAt,
+      "tokenId" -> tokenId
     ))
     val token = JsonWebToken(header, claimsSet, Secret)
-    JwtToken(token)
+    JwtToken(issuedAt, tokenId, username, token)
   }
 
-  override def getUserFromToken(jwtToken: JwtToken): Option[User] = {
-    guardIsValid(jwtToken) match {
-      case Failure(ex) => throw ex
-      case Success(unit) =>
-        val claims = jwtToken.token match {
-          case JsonWebToken(_, claimsSet, _) => claimsSet.jvalue
-        }
-        userDAO.retrieve((claims \ "username").extractOpt[String].get)
+  override def fromString(token: String): JwtToken = {
+    val claims = token match {
+      case JsonWebToken(_, claimsSet, _) => claimsSet.jvalue
+      case _ => throw InvalidJwtTokenException("The given string doesn't seem to be a jwtToken")
     }
+    val issuedAt = (claims \ "issuedAt").extractOrElse[Long](
+      throw InvalidJwtTokenException("JWT token didn't have a 'issuedAt' field in it")
+    )
+    val tokenId = (claims \ "tokenId").extractOrElse[String](
+      throw InvalidJwtTokenException("JWT token didn't have a 'tokenId' field in it")
+    )
+    val username = (claims \ "username").extractOrElse[String](
+      throw InvalidJwtTokenException("JWT token didn't have a username in it")
+    )
+
+    new JwtToken(issuedAt, UniqueId(tokenId), username, token)
   }
 
   override def guardIsValid(jwtToken: JwtToken): Try[Unit] = Try {
     JsonWebToken.validate(jwtToken.token, Secret) match {
       case false => throw InvalidJwtTokenException("Invalid JWT Token")
-      case true =>
-        val claims = jwtToken.token match {
-          case JsonWebToken(_, claimsSet, _) => claimsSet.jvalue
-          case _ => throw InvalidJwtTokenException("The given string doesn't seem to be a jwtToken")
-        }
-        (claims \ "issuedAt").extractOpt[Long] match {
-          case None => throw InvalidJwtTokenException("JWT token didn't have a 'issuedAt' field in it")
-          case Some(issuedAt) => guardIssuedAt(issuedAt)
-        }
-        (claims \ "tokenId").extractOpt[String] match {
-          case None => throw InvalidJwtTokenException("JWT token didn't have a 'tokenId' field in it")
-          case Some(tokenId) => guardTokenId(tokenId)
-        }
-        (claims \ "username").extractOpt[String] match {
-          case None => throw InvalidJwtTokenException("JWT token didn't have a username in it")
-          case Some(username) => Unit // Token is valid
-        }
+      case true => guardIssuedAt(jwtToken.issuedAt)
     }
   }
 
   private def guardIssuedAt(issuedAt: Long) = {
     if (TokenDurationMilliseconds > 0L && issuedAt + TokenDurationMilliseconds < Time.getUnixTimestampMilliseconds)
       throw InvalidJwtTokenException("JWT token timed out")
-  }
-
-  def guardTokenId(uuid: String) = {
-    if (!UniqueIdValidator.isValid(uuid)) throw new InvalidJwtTokenException("Invalid token id")
   }
 }

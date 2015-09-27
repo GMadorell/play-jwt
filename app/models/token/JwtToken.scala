@@ -1,10 +1,10 @@
-package models
+package models.token
 
+import models.UniqueId
 import play.api.libs.json._
 
 
-
-case class JwtToken(token: String)
+case class JwtToken(issuedAt: Long, tokenId: UniqueId, username: String, token: String)
 
 object JwtToken {
   implicit val jwtTokenWrites = new Writes[JwtToken] {
