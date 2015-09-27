@@ -24,18 +24,18 @@ class AuthentikatJwtAuthenticatorTimeoutTest extends PlaySpec with MockitoSugar 
       val authenticator = new AuthentikatJwtAuthenticator(userDAO)
       val token = authenticator.authenticateUser(user)
       Thread sleep 1001
-      authenticator.getUserFromToken(token) match {
-        case Success(userOption) => fail("Authenticator shouldn't return a user from an invalid token")
+      authenticator.guardIsValid(token) match {
+        case Success(unit) => fail("Authenticator should raise InvalidJwtTokenException on an timed out token")
         case Failure(ex) => ex mustBe an[InvalidJwtTokenException]
       }
     }
-    "get a user option if the token didn't time out" in {
+    "acknowledge as valid a token that didn't time out" in {
       val userDAO = mock[UserDAO]
       val authenticator = new AuthentikatJwtAuthenticator(userDAO)
       val token = authenticator.authenticateUser(user)
-      authenticator.getUserFromToken(token) match {
-        case Success(userOption) => Unit  // All ok
-        case Failure(ex) => fail("Authenticator shouldn't fail to get a user option")
+      authenticator.guardIsValid(token) match {
+        case Success(unit) => Unit  // All ok
+        case Failure(ex) => fail("Authenticator shouldn't raise an exception on a valid token", ex)
       }
     }
   }

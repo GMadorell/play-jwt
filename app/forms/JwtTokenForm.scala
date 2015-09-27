@@ -10,12 +10,6 @@ class JwtTokenForm @Inject()(jwtAuthenticator: JwtAuthenticator) {
   val form = Form(
     mapping(
       "jwtToken" -> text
-    )(JwtToken.apply)(JwtToken.unapply) verifying("Invalid JWT token", fields => fields match {
-      case jwtToken => verifyJwtToken(jwtToken)
-    })
+    )(JwtToken.apply)(JwtToken.unapply)
   )
-
-  def verifyJwtToken(jwtToken: JwtToken): Boolean = {
-    jwtAuthenticator.isValid(jwtToken)
-  }
 }

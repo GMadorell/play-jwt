@@ -11,7 +11,11 @@ class SecretPageController @Inject()(implicit val jwtAuthenticator: JwtAuthentic
                                      implicit val messagesApi: MessagesApi)
   extends Controller with JwtAuthentication {
 
-  def secret = JwtAuthenticatedAction { user =>
-    Ok(Json.obj("hello" -> user.username))
+  def secret = JwtAuthenticatedAction { jwtToken =>
+    jwtAuthenticator.getUserFromToken(jwtToken) match {
+      case None => NotFound(Json.obj("error" -> "User not found"))
+      case Some(user) => Ok(Json.obj("hello" -> user.username))
+    }
+
   }
 }

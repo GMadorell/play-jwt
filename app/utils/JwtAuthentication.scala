@@ -1,9 +1,8 @@
 package utils
 
 import forms.JwtTokenForm
-import models.{JwtToken, User}
+import models.JwtToken
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller, Result}
 import services.jwt.JwtAuthenticator
 
@@ -13,7 +12,7 @@ trait JwtAuthentication extends I18nSupport {
   self: Controller =>
 
   object JwtAuthenticatedAction {
-    def apply(f: User => Result)
+    def apply(f: JwtToken => Result)
              (implicit jwtAuthenticator: JwtAuthenticator) = Action { implicit request =>
       val jwtTokenForm = new JwtTokenForm(jwtAuthenticator)
       jwtTokenForm.form.bindFromRequest.fold(
@@ -22,13 +21,10 @@ trait JwtAuthentication extends I18nSupport {
       )
     }
 
-    def handleCorrectJwtToken(jwtToken: JwtToken, jwtAuthenticator: JwtAuthenticator, f: User => Result): Result = {
-      jwtAuthenticator.getUserFromToken(jwtToken) match {
+    def handleCorrectJwtToken(jwtToken: JwtToken, jwtAuthenticator: JwtAuthenticator, f: JwtToken => Result): Result = {
+      jwtAuthenticator.guardIsValid(jwtToken) match {
         case Failure(ex) => Forbidden(ex.getMessage)
-        case Success(userOption) => userOption match {
-          case None => NotFound(Json.obj("error" -> "User not found"))
-          case Some(user) => f(user)
-        }
+        case Success(unit) => f(jwtToken)
       }
     }
   }

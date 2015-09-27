@@ -9,7 +9,7 @@ import services.jwt.exception.InvalidJwtTokenException
 import services.user.UserDAO
 import utils.Time
 
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 
 class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
   extends JwtAuthenticator {
@@ -31,8 +31,19 @@ class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
     JwtToken(token)
   }
 
-  override def getUserFromToken(jwtToken: JwtToken): Try[Option[User]] = Try {
-    isValid(jwtToken) match {
+  override def getUserFromToken(jwtToken: JwtToken): Option[User] = {
+    guardIsValid(jwtToken) match {
+      case Failure(ex) => throw ex
+      case Success(unit) =>
+        val claims = jwtToken.token match {
+          case JsonWebToken(_, claimsSet, _) => claimsSet.jvalue
+        }
+        userDAO.retrieve((claims \ "username").extractOpt[String].get)
+    }
+  }
+
+  override def guardIsValid(jwtToken: JwtToken): Try[Unit] = Try {
+    JsonWebToken.validate(jwtToken.token, Secret) match {
       case false => throw InvalidJwtTokenException("Invalid JWT Token")
       case true =>
         val claims = jwtToken.token match {
@@ -45,15 +56,13 @@ class AuthentikatJwtAuthenticator @Inject()(userDAO: UserDAO)
         }
         (claims \ "username").extractOpt[String] match {
           case None => throw InvalidJwtTokenException("JWT token didn't have a username in it")
-          case Some(username) => userDAO.retrieve(username)
+          case Some(username) => Unit  // Token is valid
         }
     }
   }
 
-  def guardIssuedAt(issuedAt: Long) = {
+  private def guardIssuedAt(issuedAt: Long) = {
     if (TokenDurationMilliseconds > 0L && issuedAt + TokenDurationMilliseconds < Time.getUnixTimestampMilliseconds)
       throw InvalidJwtTokenException("JWT token timed out")
   }
-
-  override def isValid(jwtToken: JwtToken): Boolean = JsonWebToken.validate(jwtToken.token, Secret)
 }

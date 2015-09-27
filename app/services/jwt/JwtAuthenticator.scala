@@ -10,7 +10,11 @@ trait JwtAuthenticator {
    */
   def authenticateUser(user: User): JwtToken
 
-  def isValid(jwtToken: JwtToken): Boolean
+  /**
+   * @return a try that will be filled with an exception on failure
+   *         and empty on success (success means that the token is valid)
+   */
+  def guardIsValid(jwtToken: JwtToken): Try[Unit]
 
-  def getUserFromToken(jwtToken: JwtToken): Try[Option[User]]
+  def getUserFromToken(jwtToken: JwtToken): Option[User]
 }
