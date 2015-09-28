@@ -1,11 +1,11 @@
-package services.jwt
+package services.jwt.authenticator
 
+import exception.InvalidJwtTokenException
 import models.User
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
-import services.jwt.exception.InvalidJwtTokenException
 import utils.Time
 
 class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {

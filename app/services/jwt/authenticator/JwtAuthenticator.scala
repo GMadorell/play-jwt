@@ -1,4 +1,4 @@
-package services.jwt
+package services.jwt.authenticator
 
 import models.User
 import models.token.JwtToken

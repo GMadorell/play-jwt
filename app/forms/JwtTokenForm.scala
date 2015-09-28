@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import models.token.JwtToken
 import play.api.data.Form
 import play.api.data.Forms._
-import services.jwt.JwtAuthenticator
+import services.jwt.authenticator.JwtAuthenticator
 
 class JwtTokenForm @Inject()(jwtAuthenticator: JwtAuthenticator) {
   val form = Form(

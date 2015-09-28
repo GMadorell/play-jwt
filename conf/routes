@@ -3,10 +3,10 @@
 # ~~~~
 
 # Home page
-POST        /login               controllers.LoginController.login
-POST        /signup              controllers.SignUpController.signUp
-POST        /secret              controllers.SecretPageController.secret
-POST        /logout              controllers.LogoutController.logout
+POST        /login               @controllers.LoginController.login
+POST        /signup              @controllers.SignUpController.signUp
+POST        /secret              @controllers.SecretPageController.secret
+POST        /logout              @controllers.LogoutController.logout
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file        controllers.Assets.versioned(path="/public", file: Asset)

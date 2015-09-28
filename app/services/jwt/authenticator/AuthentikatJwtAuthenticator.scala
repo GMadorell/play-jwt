@@ -1,4 +1,4 @@
-package services.jwt
+package services.jwt.authenticator
 
 import authentikat.jwt.{JsonWebToken, JwtClaimsSet, JwtHeader}
 import com.google.inject.Inject
@@ -6,7 +6,7 @@ import models._
 import models.token.JwtToken
 import org.json4s.DefaultFormats
 import play.api.Configuration
-import services.jwt.exception.InvalidJwtTokenException
+import exception.InvalidJwtTokenException
 import utils.Time
 
 import scala.util.Try

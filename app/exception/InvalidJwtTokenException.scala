@@ -1,3 +1,3 @@
-package services.jwt.exception
+package exception
 
 case class InvalidJwtTokenException(message: String) extends Exception(message)
