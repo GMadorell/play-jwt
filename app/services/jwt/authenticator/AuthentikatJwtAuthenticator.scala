@@ -25,9 +25,9 @@ class AuthentikatJwtAuthenticator @Inject()(configuration: Configuration)
     val userId = user.uuid
     val tokenId = UniqueIdGenerator.generate
     val claimsSet = JwtClaimsSet(Map(
-      "userId" -> userId,
+      "userId" -> userId.uuid,
       "issuedAt" -> issuedAt,
-      "tokenId" -> tokenId
+      "tokenId" -> tokenId.uuid
     ))
     val token = JsonWebToken(header, claimsSet, Secret)
     JwtToken(issuedAt, tokenId, userId, token)

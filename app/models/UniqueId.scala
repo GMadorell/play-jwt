@@ -3,7 +3,7 @@ package models
 import java.util.UUID
 
 case class UniqueId(uuid: String) {
-  require(UniqueIdValidator.isValid(uuid))
+  require(UniqueIdValidator.isValid(uuid), s"The given uuid is not valid: $uuid")
 }
 
 object UniqueIdValidator {
