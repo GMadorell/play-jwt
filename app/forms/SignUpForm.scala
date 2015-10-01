@@ -13,7 +13,7 @@ class SignUpForm @Inject()(userDAO: UserDAO) {
       "username" -> text,
       "password" -> text
     )(LoginInfo.apply)(LoginInfo.unapply) verifying("User already exists", fields => fields match {
-      case loginInfo => !userDAO.exists(loginInfo.username)
+      case loginInfo => !userDAO.existsByName(loginInfo.username)
     })
   )
 }

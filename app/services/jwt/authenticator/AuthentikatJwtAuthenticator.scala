@@ -22,15 +22,15 @@ class AuthentikatJwtAuthenticator @Inject()(configuration: Configuration)
 
   override def generateToken(user: User): JwtToken = {
     val issuedAt = Time.getUnixTimestampMilliseconds
-    val username = user.username
+    val userId = user.uuid
     val tokenId = UniqueIdGenerator.generate
     val claimsSet = JwtClaimsSet(Map(
-      "username" -> username,
+      "userId" -> userId,
       "issuedAt" -> issuedAt,
       "tokenId" -> tokenId
     ))
     val token = JsonWebToken(header, claimsSet, Secret)
-    JwtToken(issuedAt, tokenId, username, token)
+    JwtToken(issuedAt, tokenId, userId, token)
   }
 
   override def fromString(token: String): JwtToken = {
@@ -44,11 +44,11 @@ class AuthentikatJwtAuthenticator @Inject()(configuration: Configuration)
     val tokenId = (claims \ "tokenId").extractOrElse[String](
       throw InvalidJwtTokenException("JWT token didn't have a 'tokenId' field in it")
     )
-    val username = (claims \ "username").extractOrElse[String](
-      throw InvalidJwtTokenException("JWT token didn't have a username in it")
+    val userId = (claims \ "userId").extractOrElse[String](
+      throw InvalidJwtTokenException("JWT token didn't have a userId in it")
     )
 
-    new JwtToken(issuedAt, UniqueId(tokenId), username, token)
+    new JwtToken(issuedAt, UniqueId(tokenId), UniqueId(userId), token)
   }
 
   override def guardIsValid(jwtToken: JwtToken): Try[Unit] = Try {

@@ -15,7 +15,7 @@ class SecretPageController @Inject()(userDao: UserDAO,
   extends Controller with JwtAuthentication {
 
   def secret = JwtAuthenticatedAction { jwtToken =>
-    userDao.retrieve(jwtToken.username) match {
+    userDao.retrieve(jwtToken.userId) match {
       case None => NotFound(Json.obj("error" -> "User not found"))
       case Some(user) => Ok(Json.obj("hello" -> user.username))
     }

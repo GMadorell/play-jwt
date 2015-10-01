@@ -19,7 +19,7 @@ class LoginForm @Inject()(userDAO: UserDAO,
   )
 
   def verifyLoginInfo(loginInfo: LoginInfo): Boolean = {
-    userDAO.retrieve(loginInfo.username) match {
+    userDAO.retrieveByName(loginInfo.username) match {
       case None => false
       case Some(user) => passwordHasher.check(user.password, loginInfo.password)
     }

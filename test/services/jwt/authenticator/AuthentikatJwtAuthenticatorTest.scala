@@ -43,11 +43,11 @@ class AuthentikatJwtAuthenticatorTest extends PlaySpec with MockitoSugar {
     "put the correct username in the 'username' field" in {
       val authenticator = new AuthentikatJwtAuthenticator(configuration)
       val firstToken = authenticator.generateToken(user)
-      firstToken.username must be(user.username)
+      firstToken.userId must be(user.uuid)
       val secondUsername = "xXQuickscopeXx"
       val secondUser = User(secondUsername, "asdfasdf")
       val secondToken = authenticator.generateToken(secondUser)
-      secondToken.username must be(secondUser.username)
+      secondToken.userId must be(secondUser.uuid)
     }
   }
 }

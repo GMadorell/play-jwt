@@ -2,24 +2,31 @@ package services.user
 
 import javax.inject._
 
-import models.User
-import services.user.exception.{UserNotExistsException, UserAlreadyExistsException}
+import models.{UniqueId, User}
+import services.user.exception.{UserAlreadyExistsException, UserNotExistsException}
 
 @Singleton // Dependency injection. This lets guice know that only one element of this class shall be created.
 class UserDAOInMemory extends UserDAO {
-  private var userMap = Map[String, User]()
+  private var userMap = Map[UniqueId, User]()
 
   override def add(user: User): Unit = {
-    if (exists(user.username)) throw UserAlreadyExistsException(s"User with name '${user.username}' already exists")
-    else userMap += (user.username -> user)
+    if (existsByName(user.username)) throw UserAlreadyExistsException(s"User with name '${user.username}' already exists")
+    if (exists(user.uuid)) throw UserAlreadyExistsException(s"User with uuid '${user.uuid}' already exists exist")
+    else userMap += (user.uuid -> user)
   }
 
   override def remove(user: User): Unit = {
-    if (!exists(user.username)) throw UserNotExistsException(s"User with name '${user.username}' doesn't exist")
-    else userMap -= user.username
+    if (!exists(user.uuid)) throw UserNotExistsException(s"User with uuid '${user.uuid}' doesn't exist")
+    else userMap -= user.uuid
   }
 
-  override def exists(username: String): Boolean = retrieve(username).isDefined
+  override def exists(userId: UniqueId): Boolean = retrieve(userId).isDefined
 
-  override def retrieve(username: String): Option[User] = userMap.get(username)
+  override def existsByName(username: String): Boolean = retrieveByName(username).isDefined
+
+  override def retrieve(userId: UniqueId): Option[User] = userMap.get(userId)
+
+  override def retrieveByName(username: String): Option[User] = {
+    userMap.values.find(u => u.username == username)
+  }
 }

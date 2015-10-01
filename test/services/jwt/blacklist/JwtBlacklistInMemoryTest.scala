@@ -7,7 +7,9 @@ import utils.Time
 
 class JwtBlacklistInMemoryTest extends PlaySpec {
 
-  val jwtToken = JwtToken(Time.getUnixTimestampMilliseconds, UniqueIdGenerator.generate, "username", "token")
+  val jwtToken = JwtToken(
+    Time.getUnixTimestampMilliseconds, UniqueIdGenerator.generate,
+    UniqueIdGenerator.generate, "token")
 
   "JwtTokenBlacklistInMemory" should {
     "not tell that a jwt token not added to the blacklist is invalid" in {
