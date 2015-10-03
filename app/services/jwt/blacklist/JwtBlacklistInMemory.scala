@@ -1,8 +1,10 @@
 package services.jwt.blacklist
 
+import com.google.inject.Singleton
 import models.UniqueId
 import models.token.JwtToken
 
+@Singleton
 class JwtBlacklistInMemory extends JwtBlacklist {
   var uniqueIdSet = Set[UniqueId]()
 

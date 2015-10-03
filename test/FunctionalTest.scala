@@ -9,7 +9,7 @@ import play.api.test._
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification {
+class FunctionalTest extends Specification {
 
   val username = "username"
   val password = "password"
@@ -45,6 +45,36 @@ class ApplicationSpec extends Specification {
       val jwtToken = (loginJson \ "jwtToken").as[String]
       secretPage(jwtToken)
     }
+    "not allow accessing the logout page without a jwtToken" in new WithApplication {
+      val req = post("/logout")
+      val Some(result) = route(req)
+      status(result) must equalTo(BAD_REQUEST)
+    }
+    "not allow accessing the logout page with an invalid jwtToken" in new WithApplication {
+      val someRandomToken = "some.random.token"
+      logout(someRandomToken, FORBIDDEN)
+    }
+    "allow accessing the logout page with a valid jwtToken" in new WithApplication {
+      signUp(username, password)
+      val loginJson = login(username, password)
+      val jwtToken = (loginJson \ "jwtToken").as[String]
+      logout(jwtToken)
+    }
+    "not allow accessing the logout page twice with the same jwtToken" in new WithApplication {
+      signUp(username, password)
+      val loginJson = login(username, password)
+      val jwtToken = (loginJson \ "jwtToken").as[String]
+      logout(jwtToken)
+      logout(jwtToken, expectedStatus = FORBIDDEN)
+    }
+    "not allow accessing the secret page after logging out" in new WithApplication {
+      signUp(username, password)
+      val loginJson = login(username, password)
+      val jwtToken = (loginJson \ "jwtToken").as[String]
+      secretPage(jwtToken)
+      logout(jwtToken)
+      secretPage(jwtToken, expectedStatus = FORBIDDEN)
+    }
   }
 
   def signUp(username: String, password: String, expectedStatus: Int = CREATED) = {
@@ -65,6 +95,12 @@ class ApplicationSpec extends Specification {
     val Some(result) = route(secretPageRequest)
     status(result) must equalTo(expectedStatus)
     jsonResult(result)
+  }
+
+  def logout(jwtToken: String, expectedStatus: Int = ACCEPTED) = {
+    val secretPageRequest = postJson("/logout", Json.obj("jwtToken" -> jwtToken))
+    val Some(result) = route(secretPageRequest)
+    status(result) must equalTo(expectedStatus)
   }
 
   def postJson(uri: String, body: JsValue) = FakeRequest(POST, uri, FakeHeaders(), body)
